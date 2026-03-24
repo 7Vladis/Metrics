@@ -11,17 +11,18 @@ CREATE TABLE nodes (
 );
 
 CREATE TABLE cpu (
-    id SERIAL PRIMARY KEY,
+    id SERIAL,
     node_id INTEGER REFERENCES nodes(id) ON DELETE CASCADE,
     time TIMESTAMP WITH TIME ZONE NOT NULL,
     load DOUBLE PRECISION, 
     frequency DOUBLE PRECISION,
     avg_load DOUBLE PRECISION,
-    last_start TIMESTAMP WITH TIME ZONE
+    last_start TIMESTAMP WITH TIME ZONE,
+    PRIMARY KEY (id, time)
 );
 
 CREATE TABLE ram_memory (
-    id SERIAL PRIMARY KEY,
+    id SERIAL,
     node_id INTEGER REFERENCES nodes(id) ON DELETE CASCADE,
     time TIMESTAMP WITH TIME ZONE NOT NULL,
     total BIGINT,
@@ -34,11 +35,12 @@ CREATE TABLE ram_memory (
     buffers BIGINT,
     cached BIGINT,
     shared BIGINT,
-    slab BIGINT
+    slab BIGINT,
+    PRIMARY KEY (id, time)
 );
 
 CREATE TABLE swap_memory(
-    id SERIAL PRIMARY KEY,
+    id SERIAL,
     node_id INTEGER REFERENCES nodes(id) ON DELETE CASCADE,
     time TIMESTAMP WITH TIME ZONE NOT NULL,  
     total BIGINT, 
@@ -46,37 +48,41 @@ CREATE TABLE swap_memory(
     free BIGINT,
     percent DOUBLE PRECISION,
     sin BIGINT,
-    sout BIGINT  
+    sout BIGINT,
+    PRIMARY KEY (id, time)
 );
 
 CREATE TABLE process (
-    id SERIAL PRIMARY KEY,
+    id SERIAL,
     node_id INTEGER REFERENCES nodes(id) ON DELETE CASCADE,
     time TIMESTAMP WITH TIME ZONE NOT NULL,   
     pid INTEGER,
     process_name TEXT,
-    ram_used BIGINT 
+    ram_used BIGINT,
+    PRIMARY KEY (id, time)
 );
 
 CREATE TABLE hard_memory(
-    id SERIAL PRIMARY KEY,
+    id SERIAL,
     node_id INTEGER REFERENCES nodes(id) ON DELETE CASCADE,
     time TIMESTAMP WITH TIME ZONE NOT NULL,  
     name TEXT,
     total BIGINT,
     used BIGINT,
     free BIGINT,
-    percent DOUBLE PRECISION    
+    percent DOUBLE PRECISION,
+    PRIMARY KEY (id, time)   
 );
 
 CREATE TABLE temperatures(
-    id SERIAL PRIMARY KEY,
+    id SERIAL,
     node_id INTEGER REFERENCES nodes(id) ON DELETE CASCADE,
     time TIMESTAMP WITH TIME ZONE NOT NULL,
     acpitz DOUBLE PRECISION,
     nvme DOUBLE PRECISION,
     coretemp DOUBLE PRECISION,
-    nic_adapter DOUBLE PRECISION    
+    nic_adapter DOUBLE PRECISION,
+    PRIMARY KEY (id, time)   
 );
 
 SELECT create_hypertable('cpu', 'time');
