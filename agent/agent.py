@@ -43,12 +43,10 @@ class TelemetryAgent:
         return False          
     
     def sync_buffer(self, conn):
-        if not self.check_journal_for_errors():
-            return
-        self.logger.info("Unfinished operations were detected. Starting synchronization...")
         files = sorted([f for f in os.listdir(self.buffer_dir) if f.endswith('.json')])
         if not files:
             return
+        self.logger.info(f"Detected {len(files)} missed sessions in journal. Starting synchronization...")
         try:
             with conn.cursor() as cur:
                 for file_name in files:
@@ -76,14 +74,16 @@ class TelemetryAgent:
                     password=self.db_config['password'], host=self.db_config['host'],
                     port=self.db_config['port'], connect_timeout=3
                 )
+                if self.check_journal_for_errors():
+                    self.sync_buffer(conn)
                 self.logger.info("Database is available")
-                self.sync_buffer(conn)
                 with conn.cursor() as cur:
                     cur.execute("CALL parse_agent_data(%s)", [json.dumps(payload)])
-                    conn.commit()
-                    self.logger.info(f"The metrics file has been sent")
+                conn.commit()
+                self.logger.info(f"The metrics file has been sent")
             except (psycopg2.OperationalError, psycopg2.InterfaceError):
-                self.logger.warning("Database is not available")
+                if not self.check_journal_for_errors():
+                    self.logger.warning("Database is not available")
                 timestamp = int(time.time())
                 with open(f"{self.buffer_dir}/metrics_{timestamp}.json", 'w', encoding='utf-8') as f:
                     json.dump(payload, f, ensure_ascii=False)

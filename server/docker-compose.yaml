@@ -5,9 +5,9 @@ services:
     image: timescale/timescaledb:2.17.0-pg16
     container_name: telemetry_db
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: telemetry_db
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=telemetry_db
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -21,11 +21,12 @@ services:
     image: edoburu/pgbouncer:latest
     container_name: telemetry_pgbouncer
     environment:
-      DB_USER: admin
-      DB_PASSWORD: password
-      DB_HOST: timescaledb
-      POOL_MODE: transaction
-      MAX_CLIENT_CONN: 1000
+      - DB_USER=admin
+      - DB_PASSWORD=password
+      - DB_HOST=timescaledb
+      - POOL_MODE=transaction
+      - MAX_CLIENT_CONN=1000
+      - AUTH_TYPE=scram-sha-256
     ports:
       - "6432:5432"
     depends_on:
