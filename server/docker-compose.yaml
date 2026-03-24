@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  timescaledb:
+    image: timescale/timescaledb:2.17.0-pg16
+    container_name: telemetry_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: telemetry_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - telemetry_net
+
+  pgbouncer:
+    image: bitnami/pgbouncer:1.22.1-debian-12-r11
+    container_name: telemetry_pgbouncer
+    environment:
+      POSTGRESQL_USERNAME: admin
+      POSTGRESQL_PASSWORD: password
+      POSTGRESQL_HOST: timescaledb
+      POSTGRESQL_DATABASE: telemetry_db
+      PGBOUNCER_POOL_MODE: transaction
+      PGBOUNCER_MAX_CLIENT_CONN: 1000
+    ports:
+      - "6432:6432"
+    depends_on:
+      - timescaledb
+    restart: unless-stopped
+    networks:
+      - telemetry_net
+
+volumes:
+  pgdata:
+
+networks:
+  telemetry_net:
+    driver: bridge  
