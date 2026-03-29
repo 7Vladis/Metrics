@@ -35,8 +35,26 @@ services:
     networks:
       - telemetry_net
 
+  grafana:
+    image: grafana/grafana:10.4.1
+    container_name: telemetry_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana-ds.yml:/etc/grafana/provisioning/datasources/datasource.yml
+    depends_on:
+      - timescaledb
+    restart: unless-stopped
+    networks:
+      - telemetry_net    
+
 volumes:
   pgdata:
+  grafana_data:
 
 networks:
   telemetry_net:
