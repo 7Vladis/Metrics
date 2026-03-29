@@ -46,6 +46,8 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana-ds.yml:/etc/grafana/provisioning/datasources/datasource.yml
+      - ./grafana-dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+      - ./dashboards:/etc/grafana/provisioning/dashboards
     depends_on:
       - timescaledb
     restart: unless-stopped
