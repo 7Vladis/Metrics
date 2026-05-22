@@ -47,20 +47,20 @@ class TelemetryAgent:
         if not files:
             return
         self.logger.info(f"Detected {len(files)} missed sessions in journal. Starting synchronization...")
-        try:
-            with conn.cursor() as cur:
-                for file_name in files:
-                    path = os.path.join(self.buffer_dir, file_name)
+        for file_name in files:
+            path = os.path.join(self.buffer_dir, file_name)
+            try:
+                with conn.cursor() as cur:
                     with open(path, 'r', encoding='utf-8') as f:
                         payload = json.load(f)
-                        cur.execute("CALL parse_agent_data(%s)", [json.dumps(payload)])
-                        os.remove(path)
-                        self.logger.info(f"The file {file_name} has been successfully sent (synchronization)")
-                conn.commit()
-                self.logger.info("Synchronization completed successfully")
-        except Exception as e:
-            self.logger.error(f"Synchronization error: {e}")
-            conn.rollback()
+                    cur.execute("CALL parse_agent_data(%s)", [json.dumps(payload)])
+                    conn.commit()
+                    os.remove(path)
+                    self.logger.info(f"The file {file_name} has been successfully sent (synchronization)")
+            except Exception as e:
+                conn.rollback()
+                self.logger.error(f"Synchronization error: {e}")
+                break
 
     def run(self):
         self.logger.info("Agent is run")
