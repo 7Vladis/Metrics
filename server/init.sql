@@ -11,7 +11,6 @@ CREATE TABLE nodes (
 );
 
 CREATE TABLE cpu (
-    id SERIAL,
     node_id INTEGER REFERENCES nodes(id) ON DELETE CASCADE,
     time TIMESTAMP WITH TIME ZONE NOT NULL,
     load DOUBLE PRECISION, 
@@ -21,11 +20,9 @@ CREATE TABLE cpu (
 );
 
 SELECT create_hypertable('cpu', 'time', chunk_time_interval => INTERVAL '1 day');
-ALTER TABLE cpu ADD PRIMARY KEY (node_id, time, id);
-CREATE INDEX idx_cpu_node_time ON cpu (node_id, time DESC);
+ALTER TABLE cpu ADD PRIMARY KEY (node_id, time);
 
 CREATE TABLE ram_memory (
-    id SERIAL,
     node_id INTEGER REFERENCES nodes(id) ON DELETE CASCADE,
     time TIMESTAMP WITH TIME ZONE NOT NULL,
     total BIGINT,
@@ -42,11 +39,9 @@ CREATE TABLE ram_memory (
 );
 
 SELECT create_hypertable('ram_memory', 'time', chunk_time_interval => INTERVAL '1 day');
-ALTER TABLE ram_memory ADD PRIMARY KEY (node_id, time, id);
-CREATE INDEX idx_ram_node_time ON ram_memory (node_id, time DESC);
+ALTER TABLE ram_memory ADD PRIMARY KEY (node_id, time);
 
 CREATE TABLE swap_memory(
-    id SERIAL,
     node_id INTEGER REFERENCES nodes(id) ON DELETE CASCADE,
     time TIMESTAMP WITH TIME ZONE NOT NULL,  
     total BIGINT, 
@@ -58,11 +53,9 @@ CREATE TABLE swap_memory(
 );
 
 SELECT create_hypertable('swap_memory', 'time', chunk_time_interval => INTERVAL '1 day');
-ALTER TABLE swap_memory ADD PRIMARY KEY (node_id, time, id);
-CREATE INDEX idx_swap_node_time ON swap_memory (node_id, time DESC);
+ALTER TABLE swap_memory ADD PRIMARY KEY (node_id, time);
 
 CREATE TABLE process (
-    id SERIAL,
     node_id INTEGER REFERENCES nodes(id) ON DELETE CASCADE,
     time TIMESTAMP WITH TIME ZONE NOT NULL,   
     pid INTEGER,
@@ -71,11 +64,9 @@ CREATE TABLE process (
 );
 
 SELECT create_hypertable('process', 'time', chunk_time_interval => INTERVAL '1 day');
-ALTER TABLE process ADD PRIMARY KEY (node_id, time, id);
-CREATE INDEX idx_process_node_time ON process (node_id, time DESC, ram_used DESC);
+ALTER TABLE process ADD PRIMARY KEY (node_id, time, pid);
 
 CREATE TABLE hard_memory(
-    id SERIAL,
     node_id INTEGER REFERENCES nodes(id) ON DELETE CASCADE,
     time TIMESTAMP WITH TIME ZONE NOT NULL,  
     name TEXT,
@@ -86,11 +77,9 @@ CREATE TABLE hard_memory(
 );
 
 SELECT create_hypertable('hard_memory', 'time', chunk_time_interval => INTERVAL '1 day');
-ALTER TABLE hard_memory ADD PRIMARY KEY (node_id, time, name, id);
-CREATE INDEX idx_hard_node_time ON hard_memory (node_id, time DESC);
+ALTER TABLE hard_memory ADD PRIMARY KEY (node_id, time, name);
 
 CREATE TABLE temperatures(
-    id SERIAL,
     node_id INTEGER REFERENCES nodes(id) ON DELETE CASCADE,
     time TIMESTAMP WITH TIME ZONE NOT NULL,
     acpitz DOUBLE PRECISION,
@@ -100,8 +89,7 @@ CREATE TABLE temperatures(
 );
 
 SELECT create_hypertable('temperatures', 'time', chunk_time_interval => INTERVAL '1 day');
-ALTER TABLE temperatures ADD PRIMARY KEY (node_id, time, id);
-CREATE INDEX idx_temp_node_time ON temperatures (node_id, time DESC);
+ALTER TABLE temperatures ADD PRIMARY KEY (node_id, time);
 
 CREATE OR REPLACE PROCEDURE parse_agent_data(payload JSONB)
 LANGUAGE plpgsql
