@@ -210,7 +210,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT n.name as metric, t.coretemp as value\r\nFROM temperatures t\r\nJOIN nodes n ON t.node_id = n.id\r\nWHERE n.name IN ($node)\r\n  AND t.time = (SELECT max(time) FROM temperatures)",
+          "rawSql": "SELECT n.name as metric, avg(t.coretemp) as value\r\nFROM temperatures t\r\nJOIN nodes n ON t.node_id = n.id\r\nWHERE n.name IN ($node)\r\n  AND $__timeFilter(t.time)\r\n GROUP BY n.name",
           "refId": "A",
           "sql": {
             "columns": [
@@ -409,7 +409,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT \r\n  n.name as \"Сервер\",\r\n  p.process_name as \"Процесс\",\r\n  p.pid as \"PID\",\r\n  p.ram_used / 1024 / 1024 as \"RAM (MB)\"\r\nFROM process p\r\nJOIN nodes n ON p.node_id = n.id\r\nWHERE n.name IN ($node)\r\n  AND p.time = (SELECT max(time) FROM process t2 WHERE t2.node_id = p.node_id)\r\nORDER BY p.ram_used DESC\r\nLIMIT 15",
+          "rawSql": "SELECT \r\n  n.name as \"Сервер\",\r\n  p.process_name as \"Процесс\",\r\n  p.pid as \"PID\",\r\n  avg(p.ram_used) / 1024 / 1024 as \"RAM (MB)\"\r\nFROM process p\r\nJOIN nodes n ON p.node_id = n.id\r\nWHERE n.name IN ($node)\r\n  AND $__timeFilter(p.time)\r\nGROUP BY n.name, p.process_name, p.pid\r\nORDER BY avg(p.ram_used) DESC\r\nLIMIT 15",
           "refId": "A",
           "sql": {
             "columns": [

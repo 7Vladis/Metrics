@@ -17,9 +17,12 @@ CREATE TABLE cpu (
     load DOUBLE PRECISION, 
     frequency DOUBLE PRECISION,
     avg_load DOUBLE PRECISION,
-    last_start TIMESTAMP WITH TIME ZONE,
-    PRIMARY KEY (id, time)
+    last_start TIMESTAMP WITH TIME ZONE
 );
+
+SELECT create_hypertable('cpu', 'time', chunk_time_interval => INTERVAL '1 day');
+ALTER TABLE cpu ADD PRIMARY KEY (node_id, time, id);
+CREATE INDEX idx_cpu_node_time ON cpu (node_id, time DESC);
 
 CREATE TABLE ram_memory (
     id SERIAL,
@@ -35,9 +38,12 @@ CREATE TABLE ram_memory (
     buffers BIGINT,
     cached BIGINT,
     shared BIGINT,
-    slab BIGINT,
-    PRIMARY KEY (id, time)
+    slab BIGINT
 );
+
+SELECT create_hypertable('ram_memory', 'time', chunk_time_interval => INTERVAL '1 day');
+ALTER TABLE ram_memory ADD PRIMARY KEY (node_id, time, id);
+CREATE INDEX idx_ram_node_time ON ram_memory (node_id, time DESC);
 
 CREATE TABLE swap_memory(
     id SERIAL,
@@ -48,9 +54,12 @@ CREATE TABLE swap_memory(
     free BIGINT,
     percent DOUBLE PRECISION,
     sin BIGINT,
-    sout BIGINT,
-    PRIMARY KEY (id, time)
+    sout BIGINT
 );
+
+SELECT create_hypertable('swap_memory', 'time', chunk_time_interval => INTERVAL '1 day');
+ALTER TABLE swap_memory ADD PRIMARY KEY (node_id, time, id);
+CREATE INDEX idx_swap_node_time ON swap_memory (node_id, time DESC);
 
 CREATE TABLE process (
     id SERIAL,
@@ -58,9 +67,12 @@ CREATE TABLE process (
     time TIMESTAMP WITH TIME ZONE NOT NULL,   
     pid INTEGER,
     process_name TEXT,
-    ram_used BIGINT,
-    PRIMARY KEY (id, time)
+    ram_used BIGINT
 );
+
+SELECT create_hypertable('process', 'time', chunk_time_interval => INTERVAL '1 day');
+ALTER TABLE process ADD PRIMARY KEY (node_id, time, id);
+CREATE INDEX idx_process_node_time ON process (node_id, time DESC, ram_used DESC);
 
 CREATE TABLE hard_memory(
     id SERIAL,
@@ -70,9 +82,12 @@ CREATE TABLE hard_memory(
     total BIGINT,
     used BIGINT,
     free BIGINT,
-    percent DOUBLE PRECISION,
-    PRIMARY KEY (id, time)   
+    percent DOUBLE PRECISION
 );
+
+SELECT create_hypertable('hard_memory', 'time', chunk_time_interval => INTERVAL '1 day');
+ALTER TABLE hard_memory ADD PRIMARY KEY (node_id, time, name, id);
+CREATE INDEX idx_hard_node_time ON hard_memory (node_id, time DESC);
 
 CREATE TABLE temperatures(
     id SERIAL,
@@ -81,16 +96,12 @@ CREATE TABLE temperatures(
     acpitz DOUBLE PRECISION,
     nvme DOUBLE PRECISION,
     coretemp DOUBLE PRECISION,
-    nic_adapter DOUBLE PRECISION,
-    PRIMARY KEY (id, time)   
+    nic_adapter DOUBLE PRECISION
 );
 
-SELECT create_hypertable('cpu', 'time');
-SELECT create_hypertable('ram_memory', 'time');
-SELECT create_hypertable('swap_memory', 'time');
-SELECT create_hypertable('process', 'time');
-SELECT create_hypertable('hard_memory', 'time');
-SELECT create_hypertable('temperatures', 'time');
+SELECT create_hypertable('temperatures', 'time', chunk_time_interval => INTERVAL '1 day');
+ALTER TABLE temperatures ADD PRIMARY KEY (node_id, time, id);
+CREATE INDEX idx_temp_node_time ON temperatures (node_id, time DESC);
 
 CREATE OR REPLACE PROCEDURE parse_agent_data(payload JSONB)
 LANGUAGE plpgsql
@@ -113,7 +124,12 @@ BEGIN
         payload->'node'->>'type'
     )
     ON CONFLICT (name) DO UPDATE
-    SET ip = EXCLUDED.ip, version = EXCLUDED.version
+    SET
+        ip = EXCLUDED.ip,
+        system = EXCLUDED.system,
+        release = EXCLUDED.release,
+        version = EXCLUDED.version,
+        type = EXCLUDED.type
     RETURNING id INTO v_node_id;
 
     INSERT INTO cpu (node_id, time, load, frequency, avg_load, last_start)
