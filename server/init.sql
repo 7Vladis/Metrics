@@ -125,7 +125,7 @@ BEGIN
         (payload->'cpu'->>'load')::DOUBLE PRECISION,
         (payload->'cpu'->>'frequency')::DOUBLE PRECISION,
         (payload->'cpu'->>'avg_load')::DOUBLE PRECISION,
-        (payload->'cpu'->>'last_start')::TIMESTAMP WITH TIME ZONE);
+        (payload->'cpu'->>'last_start')::TIMESTAMP WITH TIME ZONE)
     ON CONFLICT (node_id, time) DO NOTHING;
 
     INSERT INTO ram_memory (node_id, time, total, available, percent, used, free, active, inactive, buffers, cached, shared, slab)
@@ -140,7 +140,7 @@ BEGIN
         (payload->'ram'->>'buffers')::BIGINT,
         (payload->'ram'->>'cached')::BIGINT,
         (payload->'ram'->>'shared')::BIGINT,
-        (payload->'ram'->>'slab')::BIGINT);
+        (payload->'ram'->>'slab')::BIGINT)
     ON CONFLICT (node_id, time) DO NOTHING;
 
     INSERT INTO swap_memory (node_id, time, total, used, free, percent, sin, sout)
@@ -150,7 +150,7 @@ BEGIN
         (payload->'swap'->>'free')::BIGINT,
         (payload->'swap'->>'percent')::DOUBLE PRECISION,
         (payload->'swap'->>'sin')::BIGINT,
-        (payload->'swap'->>'sout')::BIGINT);
+        (payload->'swap'->>'sout')::BIGINT)
     ON CONFLICT (node_id, time) DO NOTHING;
 
     INSERT INTO temperatures (node_id, time, acpitz, nvme, coretemp, nic_adapter)
@@ -158,7 +158,7 @@ BEGIN
         (payload->'temperatures'->>'acpitz')::DOUBLE PRECISION,
         (payload->'temperatures'->>'nvme')::DOUBLE PRECISION,
         (payload->'temperatures'->>'coretemp')::DOUBLE PRECISION,
-        (payload->'temperatures'->>'nic_adapter')::DOUBLE PRECISION);
+        (payload->'temperatures'->>'nic_adapter')::DOUBLE PRECISION)
     ON CONFLICT (node_id, time) DO NOTHING;
 
     FOR disk_item IN SELECT * FROM jsonb_array_elements(payload->'disks') LOOP
@@ -168,7 +168,7 @@ BEGIN
         (disk_item->>'total')::BIGINT,
         (disk_item->>'used')::BIGINT,
         (disk_item->>'free')::BIGINT,
-        (disk_item->>'percent')::DOUBLE PRECISION);
+        (disk_item->>'percent')::DOUBLE PRECISION)
         ON CONFLICT (node_id, time, name) DO NOTHING;
     END LOOP;
 
@@ -177,7 +177,7 @@ BEGIN
         VALUES (v_node_id, v_time,
         (proc_item->>'pid')::INTEGER,
         proc_item->>'process_name',
-        (proc_item->>'ram_used')::BIGINT);
+        (proc_item->>'ram_used')::BIGINT)
         ON CONFLICT (node_id, time, pid) DO NOTHING;
     END LOOP;
 END;
