@@ -126,6 +126,7 @@ BEGIN
         (payload->'cpu'->>'frequency')::DOUBLE PRECISION,
         (payload->'cpu'->>'avg_load')::DOUBLE PRECISION,
         (payload->'cpu'->>'last_start')::TIMESTAMP WITH TIME ZONE);
+    ON CONFLICT (node_id, time) DO NOTHING;
 
     INSERT INTO ram_memory (node_id, time, total, available, percent, used, free, active, inactive, buffers, cached, shared, slab)
     VALUES (v_node_id, v_time,
@@ -140,6 +141,7 @@ BEGIN
         (payload->'ram'->>'cached')::BIGINT,
         (payload->'ram'->>'shared')::BIGINT,
         (payload->'ram'->>'slab')::BIGINT);
+    ON CONFLICT (node_id, time) DO NOTHING;
 
     INSERT INTO swap_memory (node_id, time, total, used, free, percent, sin, sout)
     VALUES (v_node_id, v_time,
@@ -149,6 +151,7 @@ BEGIN
         (payload->'swap'->>'percent')::DOUBLE PRECISION,
         (payload->'swap'->>'sin')::BIGINT,
         (payload->'swap'->>'sout')::BIGINT);
+    ON CONFLICT (node_id, time) DO NOTHING;
 
     INSERT INTO temperatures (node_id, time, acpitz, nvme, coretemp, nic_adapter)
     VALUES (v_node_id, v_time, 
@@ -156,6 +159,7 @@ BEGIN
         (payload->'temperatures'->>'nvme')::DOUBLE PRECISION,
         (payload->'temperatures'->>'coretemp')::DOUBLE PRECISION,
         (payload->'temperatures'->>'nic_adapter')::DOUBLE PRECISION);
+    ON CONFLICT (node_id, time) DO NOTHING;
 
     FOR disk_item IN SELECT * FROM jsonb_array_elements(payload->'disks') LOOP
         INSERT INTO hard_memory (node_id, time, name, total, used, free, percent)
@@ -165,6 +169,7 @@ BEGIN
         (disk_item->>'used')::BIGINT,
         (disk_item->>'free')::BIGINT,
         (disk_item->>'percent')::DOUBLE PRECISION);
+        ON CONFLICT (node_id, time, name) DO NOTHING;
     END LOOP;
 
     FOR proc_item IN SELECT * FROM jsonb_array_elements(payload->'processes') LOOP
@@ -173,6 +178,7 @@ BEGIN
         (proc_item->>'pid')::INTEGER,
         proc_item->>'process_name',
         (proc_item->>'ram_used')::BIGINT);
+        ON CONFLICT (node_id, time, pid) DO NOTHING;
     END LOOP;
 END;
 $$;   
